@@ -1,11 +1,11 @@
-require 'capybara/poltergeist'
+require 'selenium/webdriver'
 
 class Scrapper
   DATA_IDENTIFIERS = {
     category: {
       xpath: '.merchant-menu-category_header',
       children: {
-        item_name: 'offer-tile_name',
+        item_name: '.offer-tile_name',
         modifiers: '.offer-tile_description',
         price: '.offer-tile_price'
       }
@@ -27,17 +27,26 @@ class Scrapper
   private
 
   def config
-    Capybara.register_driver :poltergeist do |app|
-      Capybara::Poltergeist::Driver.new(app, {
-        timeout: 10000,
-        phantomjs_options: ['--load-images=no', '--ignore-ssl-errors=yes', '--ssl-protocol=any']
-      })
+    Capybara.register_driver :chrome do |app|
+      Capybara::Selenium::Driver.new(app, browser: :chrome)
     end
+
+    Capybara.register_driver :headless_chrome do |app|
+      capabilities = Selenium::WebDriver::Remote::Capabilities.chrome(
+          chromeOptions: { args: %w(headless disable-gpu) }
+      )
+
+      Capybara::Selenium::Driver.new app,
+                                     browser: :chrome,
+                                     desired_capabilities: capabilities
+    end
+
+    Capybara.javascript_driver = :headless_chrome
   end
 
   def fetch_html
     config
-    session = Capybara::Session.new(:poltergeist)
+    session = Capybara::Session.new(:headless_chrome)
     session.visit(@url)
     @html = session.html
   end
@@ -47,10 +56,15 @@ class Scrapper
     doc.css(DATA_IDENTIFIERS[:category][:xpath]).each do |category|
       category_result = {}
       category_result[category.text] = []
-      DATA_IDENTIFIERS[:category][:children].each do |name, child_element_path|
-        child_data = {}
-        child_data[name] = doc.css(doc.css(child_element_path)).text || 'N/A'
-        category_result[category.text] << child_data
+      child_element_path = DATA_IDENTIFIERS[:category][:children][:item_name]
+      length = category.parent.css(child_element_path).count
+      length.times do |i|
+        children_paths = DATA_IDENTIFIERS[:category][:children]
+        category_result[category.text] << {
+          item_name: category.parent.css(children_paths[:item_name])[i]&.text || 'N/A',
+          modifiers: category.parent.css(children_paths[:modifiers])[i]&.text || 'N/A',
+          price: category.parent.css(children_paths[:price])[i]&.text || 'N/A'
+        }
       end
       @result << category_result
     end

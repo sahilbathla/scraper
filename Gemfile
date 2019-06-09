@@ -39,7 +39,7 @@ gem 'bootsnap', '>= 1.1.0', require: false
 # For opening links in Browser
 # Adds support for Capybara system testing and selenium driver
 gem 'capybara', '>= 2.15'
-gem 'poltergeist'
+gem 'capybara-selenium'
 
 # For scraping elements
 gem 'nokogiri'
