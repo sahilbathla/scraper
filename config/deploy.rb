@@ -2,7 +2,7 @@
 lock "~> 3.11.0"
 
 set :application, "scraper"
-set :repo_url, "https://github.com/sahilbathla/scraper.git"
+set :repo_url, "https://github.com/udit7590/scraper.git"
 
 # Default branch is :master
 # ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
