@@ -33,7 +33,7 @@ class Scrapper
 
     Capybara.register_driver :headless_chrome do |app|
       capabilities = Selenium::WebDriver::Remote::Capabilities.chrome(
-          chromeOptions: { args: %w(headless no-sandbox disable-gpu) }
+          chromeOptions: { args: %w(headless no-sandbox remote-debugging-port=922 disable-gpu) }
       )
 
       Capybara::Selenium::Driver.new app,
